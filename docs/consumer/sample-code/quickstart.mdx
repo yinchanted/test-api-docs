@@ -1,0 +1,73 @@
+---
+sidebar_position: 1
+description: How to get started with the sample code
+---
+
+# Quickstart
+
+The sample code is available on [GitHub](https://github.com) and contains examples on how to retrieve a token using the JWT grant type and how to use the token to authenticate an API call.
+
+### Create an application
+
+1. [Create an application](./consumer/security/application-credentials) and select the API products you want to use.
+   More than one API product can be assigned to an application and during pilot period the application can be modified to include more products.
+
+2. Copy the **consumer key** and **consumer secret** values into `CONSUMER_KEY` and `CONSUMER_SECRET` environment variables.
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+<Tabs>
+<TabItem value="unix" label="Linux and macOS">
+```shell script
+export CONSUMER_KEY=<consumer key>
+export CONSUMER_SECRET=<consumer secret>
+```
+</TabItem>
+<TabItem value="windows" label="Windows">
+```PowerShell
+$env:CONSUMER_KEY=<consumer key>
+$env:CONSUMER_SECRET=<consumer secret>
+```
+```shell
+set CONSUMER_KEY=<consumer key>
+set CONSUMER_SECRET=<consumer secret>
+```
+</TabItem>
+</Tabs>
+
+### Start the application
+
+This monorepo contains multiple sample code projects organized in subfolders.
+The folder structure is as follows: `language -> framework(optional) -> project`
+
+To start the application:
+
+1. Navigate to the project subfolder, for example:
+
+   ```shell script
+     # cd language/framework/<project>
+     cd java/spring-boot/messaging-api
+   ```
+
+   or
+
+   ```shell script
+     # cd language/<project>
+     cd nodejs/messaging-api
+   ```
+
+2. Launch the application
+   | Language | Command |
+   | --- | --- |
+   | Spring Boot | `./mvnw spring-boot:run` |
+   | Quarkus | `./mvnw quarkus:dev` |
+   | .NET | `dotnet run` |
+   | NodeJS | `npm install && npm run dev` |
+   | Python | `python -m flask run --port 8080` |
+
+## Testing
+
+REST API endpoints are exposed to quickly test the code and [Swagger UI](https://swagger.io/tools/swagger-ui/) can be used to easily execute the tests.
+
+The Swagger UI page will be available at http://127.0.0.1:8080/test

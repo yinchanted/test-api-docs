@@ -1,0 +1,35 @@
+JWTs as Authorization Grants for OAuth 2.0 is used to authorize API calls to the Swift API Gateway.
+
+The authorization process is as follows:
+
+1. Generate a JSON Web Token (JWT) using your application credentials
+2. Use the JWT to retrieve an OAuth token
+    * Authentication of the client is performed using HTTP Basic Authentication with the [application credentials](/consumer/security/application-credentials).
+3. Use the OAuth token to make the API call
+
+```mermaid
+sequenceDiagram
+    participant Application
+    participant SwiftAPI as Swift API Gateway
+    participant SwiftIdp as Swift Idp
+    participant Resource as Resource server
+
+    activate Application
+    Application->>Application: Generate JWT
+    deactivate Application
+    rect rgba(0, 0, 0, .3)
+    note right of SwiftIdp: OAuth token retrieval flow
+    Application->>SwiftAPI: Retrieve OAuth token
+    activate SwiftAPI
+    SwiftAPI->>SwiftIdp: Verify credentials
+    activate SwiftIdp
+    SwiftIdp-->>SwiftAPI: Response
+    deactivate SwiftIdp
+    SwiftAPI-->>Application: OAuth token
+    end
+    deactivate SwiftAPI
+    Application->>Resource: Make API call with OAuth token
+    activate Resource
+    Resource-->>Application: API response
+    deactivate Resource
+```

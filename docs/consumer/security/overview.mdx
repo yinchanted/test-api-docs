@@ -1,0 +1,83 @@
+---
+sidebar_position: 1
+title: Overview
+description: Security Aspects of Swift API Services
+---
+
+# Security Aspects of Swift API Services
+
+Like traditional messaging services offered by Swift, security is of paramount importance and the same principles and ideology used for traditional messaging (FIN/InterAct) has been utilized for Swift API services.
+
+There are multiple layers of security embedded in all Swift API services to ensure data protection and confidentiality of all communication between the parties involved in the API flows.
+
+Swift API services security consists of **4 layers** of protection:
+
+import BoxLayout from "@site/src/components/box/BoxLayout";
+import Box from "@site/src/components/box/Box";
+
+<BoxLayout>
+  <Box to="#business-application-credentials">
+    <p style={{ textAlign: "center", fontWeight: "var(--ifm-heading-font-weight)", margin: 0 }}>
+      Application Identification
+    </p>
+  </Box>
+  <Box to="#financial-institution-authentication">
+    <p style={{ textAlign: "center", fontWeight: "var(--ifm-heading-font-weight)", margin: 0 }}>
+      Financial Institution Authentication
+    </p>
+  </Box>
+  <Box to="#financial-institution-authorization-request-for-entitlement">
+    <p style={{ textAlign: "center", fontWeight: "var(--ifm-heading-font-weight)", margin: 0 }}>
+      Financial Institution Authorization
+    </p>
+  </Box>
+  <Box to="#end-to-end-non-repudiation">
+    <p style={{ textAlign: "center", fontWeight: "var(--ifm-heading-font-weight)", margin: 0 }}>
+      End to End Non-Repudiation
+    </p>
+  </Box>
+</BoxLayout>
+
+## Business Application Identification
+
+This is the primary level of authentication embedded in all API communication established with Swift.
+Each application (API client) is required to be registered on Swift Developer Portal to generate a `Consumer Key` and `Consumer Secret` for each application and corresponding Swift API service.
+
+These `Consumer Key` is also required to be passed to Swift to generate JWT (JSON Web Token) for establishing a secure API session with Swift.
+
+For more details on generating `Consumer Key` and `Consumer Secret`, refer to section [Application credentials](./application-credentials).
+
+## Financial Institution Authentication
+
+This is the second level of authentication required to establish the identity of the financial institution with Swift. This is performed basis the organization certificate (Public/Private key pair) which conforms to X509 standards.
+
+- In case of MV-SIPN based connection: SwiftNet PKI certificate.
+- In case of Internet based connection: Certificate issued by a Public CA
+
+The combination of details from Business Application Identification & Financial Institution Authentication is required to generate and sign JWT using your private key.
+
+For more details regarding generating and signing JWT, kindly refer to [Authentication and authorization](./oauth-authentication) guide.
+
+## Financial Institution Authorization (Request for Entitlement)
+
+:::info
+More information about the RBAC roles can be found [here](/consumer/security/swiftnet-pki/rbac-roles).
+:::
+
+In traditional messaging flow, authorization would refer to RBAC (Role Based Access Control) to verify the permissions granted to financial institutions to consume specific Swift Services.
+
+For APIs, Request for Entitlement is used for authorization, and this is performed by Swift Idp (Swift Identity Management Platform), using the JWT generated based on the first two layers of security to retrieve the OAuth token.
+
+Request for Entitlement refers to the `Scope` of the OAuth 2.0 specifications which is used to limit an application’s access to a user’s account up to the granularity of API services and RBAC roles.
+Aforementioned three layers of security are mandatory for all Swift API services.
+
+However, in case of non-ancillary services (financial transaction data related services), an additional security layer is also required, **end to end non-repudiation.**
+
+## End to End Non-Repudiation
+
+This additional layer of security is only required for API request that includes financial transaction data, such as Swift Messaging APIs.
+In this case, while sending the API request, an application-level signing is also needed based on SwiftNet PKI Certificate.
+This would be the `X-Swift Signature` in the application header of the API request and consists of signing the digest
+of message payload using your SwiftNet PKI certificate private key.
+
+For more details regarding the end to end non-repudiation, kindly refer to [Non-repudiation](./non-repudiation) guide.

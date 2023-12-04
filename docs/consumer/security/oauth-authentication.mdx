@@ -1,0 +1,178 @@
+---
+sidebar_position: 3
+toc_max_heading_level: 4
+description: Authentication methods for the Swift APIs
+---
+
+# Authentication
+
+:::info
+Swift provides [sample code](/docs/consumer/sample-code/quickstart) for different languages to help you get started with the Swift APIs.
+:::
+
+Swift APIs are secured using OAuth 2.0. This means that you need to authenticate before you can make an API call.
+
+Depending on the API product you are trying to access, you will be using one of the two types of OAuth:
+
+- [JWT Bearer Grant Type RFC7523 Section-2.1](https://datatracker.ietf.org/doc/html/rfc7523#section-2.1)
+- [Password Grant Type](https://datatracker.ietf.org/doc/html/rfc6749#section-4.3)
+
+## JWT Bearer Grant Type
+
+import OAuthJwtSequenceDiagram from "../security/_oauth-jwt-sequence-diagram.mdx";
+
+<OAuthJwtSequenceDiagram />
+
+### JWT structure
+
+Then token structure is divided into three parts: header, payload and signature.
+
+1. **Header:** The header consists of three parts: the type of the token, which is JWT, the signing algorithm being used, RSA256, and the x5c claim
+
+2. **Payload:** The second part of the token is the payload, which contains the claims
+
+3. **Signature:** The signature is created by signing the header and payload with the private key of the client
+
+More information about the JWT structure can be found in [RFC7519](https://datatracker.ietf.org/doc/html/rfc7519).
+
+#### Header
+
+The **alg** claim defines the signing algorithm used for the token, Swift always uses RSA256.
+The **typ** claim defines the type of the token, which is JWT and the **x5c** claim contains the public key of the client.
+
+Both the **alg** and **typ** claims always have the same value, while the **x5c** claim varies depending on the client.
+
+```json title="JWT Header example"
+{
+  "alg": "RS256",
+  "typ": "JWT",
+  "x5c": [
+    "MIIC5jCCAc6gAwIBAgIBATANBgkqhkiG9w0BAQsFADAlMRMwEQYDVQQDEwpzZWxmc2lnbmVkMQ4wDAYDVQQKEwVzd2lmdDAeFw0yMjExMDIxMjE1MjZaFw0yNDExMDIxMjE1MjZaMCUxEzARBgNVBAMTCnNlbGZzaWduZWQxDjAMBgNVBAoTBXN3aWZ0MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAr1CiDqXfifgLuODiv1v3ajpOy8l9TWdv37GspszCE6G/PjoZ8CGjYzu4rJArlqa8CIF1jwBZEExNE6CNlcpxBj1xLq4oukBw2ijbxHA3f43Qf1m2r0ndsw/pqqWDTrjzPwxpOi2g7Yyq8uDs8GIVnkTKFkwk5TPB7ZBf1jzydy/IkyUPMZgDxBKiZOz6fM2XMe8T138Bu1bjQ22UveZj7bdclVKYuUKmPuZVAlIIH4E1JlImTlhqcoAOzaQRcrPssfrw2BL3+uKJIB52zFVZsmchKk8otboA15ucWVLucEGrJA+lGsX3+inuZmYJsARMckUMvy9fScr436ZiJmkDLQIDAQABoyEwHzAdBgNVHQ4EFgQUchW4C+5JAZTgLb8o9a2GZNGuNc8wDQYJKoZIhvcNAQELBQADggEBAEeJd/mCSjCG3VHrD3eH8rALvMxvoaHZpNdxtss8OmhTZa7Uk5NIFhuMoibayKKmjB+uL19qkEZPM207mcah8HP0xcF3AUEgxfwQauLhMupblm2ORFH2FDSRBVLEdHNRm0jvekhxiA4N2fenG9u/WA+0alq7rvllPV/bHY3VwlP2tb+S7zgM8uFDHMgY8QCpS0Dh9KW5PZVF7cPWszxuk8Xm1vT5vbrdimtAFdGfuKfvJUuQTWRoghdpZivXS/vgqcA75de+1e6LuLAZ8+HXlLquLkQb3i/Gb3jnut2Ph5PUExxnWSxjwD8QpXEZ6UvDOop2OldtyQoVkkvMnP2KJsc="
+  ]
+}
+```
+
+#### Payload
+
+The payload contains the claims of the token. For the token retrieval, the following claims are required:
+
+| Claim | Description                                                                                                                                                                                        |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| iss   | The consumer key of the [application created in the developer portal](./application-credentials)                                                                                                   |
+| sub   | The certificate distinguished name (DN)                                                                                                                                                            |
+| aud   | The recipients that the JWT is intended for. Here this must be the URL of the endpoint, minus the scheme                                                                                           |
+| iat   | The time at which the JWT was issued (current date-time)                                                                                                                                           |
+| nbf   | The time before which the token must not be accepted for processing in seconds                                                                                                                     |
+| exp   | The expiration time on or after which the JWT must not be accepted for processing (NumericDate, see RFC 7519). Must be a value after the iat claim and no more than 15 minutes after the iat claim |
+| jti   | Unique identifier for the JWT. Accepted character set is Base64 URL (see RFC 4648). It is be used to prevent the JWT from being replayed                                                           |
+
+This is an example of a payload of a JWT token used to retrieve a token:
+
+```json title="JWT Payload example"
+{
+  "iss": "82QSBEAQsBdwuNF6sTjAaYCRLOKG2vtj",
+  "sub": "CN=selfsigned,O=swift",
+  "aud": "sandbox.swift.com/oauth2/v1/token",
+  "exp": 1698927383,
+  "iat": 1698927368,
+  "nbf": 1698927368,
+  "jti": "583zebhlk4plfe1511bo2t"
+}
+```
+
+#### Signature
+
+The signature is created by signing the header and payload with the private key of the client.
+The signature is also base64 encoded and concatenated with a dot to the header and payload.
+
+A SWIFTNet PKI certificate is required to sign the JWT token either using a [hardware security module (HSM)](/docs/consumer/security/swiftnet-pki/hsm-certificate)
+or a [channel certificate stores in file system](/docs/consumer/security/swiftnet-pki/channel-certificate).
+
+The final token using looks as follows:
+
+```jwt title="JWT token example using previous header and payload examples"
+eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsIng1YyI6WyJNSUlDNWpDQ0FjNmdBd0lCQWdJQkFUQU5CZ2txaGtpRzl3MEJBUXNGQURBbE1STXdFUVlEVlFRREV3cHpaV3htYzJsbmJtVmtNUTR3REFZRFZRUUtFd1Z6ZDJsbWREQWVGdzB5TWpFeE1ESXhNakUxTWpaYUZ3MHlOREV4TURJeE1qRTFNalphTUNVeEV6QVJCZ05WQkFNVENuTmxiR1p6YVdkdVpXUXhEakFNQmdOVkJBb1RCWE4zYVdaME1JSUJJakFOQmdrcWhraUc5dzBCQVFFRkFBT0NBUThBTUlJQkNnS0NBUUVBcjFDaURxWGZpZmdMdU9EaXYxdjNhanBPeThsOVRXZHYzN0dzcHN6Q0U2Ry9Qam9aOENHall6dTRySkFybHFhOENJRjFqd0JaRUV4TkU2Q05sY3B4QmoxeExxNG91a0J3MmlqYnhIQTNmNDNRZjFtMnIwbmRzdy9wcXFXRFRyanpQd3hwT2kyZzdZeXE4dURzOEdJVm5rVEtGa3drNVRQQjdaQmYxanp5ZHkvSWt5VVBNWmdEeEJLaVpPejZmTTJYTWU4VDEzOEJ1MWJqUTIyVXZlWmo3YmRjbFZLWXVVS21QdVpWQWxJSUg0RTFKbEltVGxocWNvQU96YVFSY3JQc3NmcncyQkwzK3VLSklCNTJ6RlZac21jaEtrOG90Ym9BMTV1Y1dWTHVjRUdySkErbEdzWDMraW51Wm1ZSnNBUk1ja1VNdnk5ZlNjcjQzNlppSm1rRExRSURBUUFCb3lFd0h6QWRCZ05WSFE0RUZnUVVjaFc0Qys1SkFaVGdMYjhvOWEyR1pOR3VOYzh3RFFZSktvWklodmNOQVFFTEJRQURnZ0VCQUVlSmQvbUNTakNHM1ZIckQzZUg4ckFMdk14dm9hSFpwTmR4dHNzOE9taFRaYTdVazVOSUZodU1vaWJheUtLbWpCK3VMMTlxa0VaUE0yMDdtY2FoOEhQMHhjRjNBVUVneGZ3UWF1TGhNdXBibG0yT1JGSDJGRFNSQlZMRWRITlJtMGp2ZWtoeGlBNE4yZmVuRzl1L1dBKzBhbHE3cnZsbFBWL2JIWTNWd2xQMnRiK1M3emdNOHVGREhNZ1k4UUNwUzBEaDlLVzVQWlZGN2NQV3N6eHVrOFhtMXZUNXZicmRpbXRBRmRHZnVLZnZKVXVRVFdSb2doZHBaaXZYUy92Z3FjQTc1ZGUrMWU2THVMQVo4K0hYbExxdUxrUWIzaS9HYjNqbnV0MlBoNVBVRXh4bldTeGp3RDhRcFhFWjZVdkRPb3AyT2xkdHlRb1Zra3ZNblAyS0pzYz0iXX0.eyJpc3MiOiI4MlFTQkVBUXNCZHd1TkY2c1RqQWFZQ1JMT0tHMnZ0aiIsInN1YiI6IkNOPXNlbGZzaWduZWQsTz1zd2lmdCIsImF1ZCI6InNhbmRib3guc3dpZnQuY29tL29hdXRoMi92MS90b2tlbiIsImV4cCI6MTY5ODkyNzM4MywiaWF0IjoxNjk4OTI3MzY4LCJuYmYiOjE2OTg5MjczNjgsImp0aSI6IjU4M3plYmhsazRwbGZlMTUxMWJvMnQifQ.hOCsHQZMW8JWIQrCWWQA3lTqr1t6vcfJhLNLUjk-wv5SLPgD3f-sTWgBoo6yENx8EQ-l87BOTKiMjIb-ZgVNGi5BfjyojiWqYgGWlP6ZqLfZGFFVfaS50lPJebwCvIKDYn60GYYwj6dco1wnXgiWbxy4HoTrp0gYnu8lFTiwcxzSysBFwNu2QmtYE4A_PcKYnOMd0lkfjDW1cg3LOAJI1wFiHWhm-zc8oNS_RdHjDWa3c0m5olYzCsAJHzTRMTfXMzioQNdPdVkvV2VbVYQC5qV7zhzpSV-Bu3V287cKl-AaHhMHqPkGqU-RnSZ7Z-weJ6rdNzWg9W4pYGRN8z-wxA
+```
+
+For more information about the JWT structure see [RFC7519](https://datatracker.ietf.org/doc/html/rfc7519).
+
+### Token request
+
+The token is requested performing a POST request to the token endpoint `/oauth2/v1/token`.
+
+The request body contains the following parameters encoded as `application/x-www-form-urlencoded`:
+
+| Parameter  | Description                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| grant_type | The grant type. For the JWT grant type this is `urn:ietf:params:oauth:grant-type:jwt-bearer`                                                                                                                                                                                                                                                                                                                       |
+| scope      | Must be defined as a list of `service/rbac_role` pairs. Multiple space separated values are allowed.<br/><br/>For example, to get full viewer access for the gpi tracker the scope should be `swift.apitracker/FullViewer`and to get access to Pre-Validation `swift.preval` is enough.<br/><br/>A list with the available roles is available in the [RBAC roles](/docs/consumer/security/swiftnet-pki/rbac-roles) guide. |
+| assertion  | The JWT token                                                                                                                                                                                                                                                                                                                                                                                                      |
+
+Authorization is done using the client credentials as described in [Application credentials](./application-credentials) guide.
+
+```bash title="Token request example" {4}
+POST /oauth2/v1/token HTTP/1.1
+Host: sandbox.swift.com
+Content-Type: application/x-www-form-urlencoded
+Authorization: Basic MjJRU0JFQVFzQmR3dU5GNnNWalRqQWFZQ1JMT0tHMnZ0ajpramRzZmtkamZkMDk4OQ==
+
+grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer
+&scope=swift.preval%21p
+&assertion=eyJhbGciOiJFUzI1NiIsImtpZCI6IjE2In0.
+eyJpc3Mi[...omitted for brevity...].
+J9l-ZhwP[...omitted for brevity...]
+```
+
+### Token response
+
+The token response is a JSON object containing the following parameters:
+
+| Parameter             | Description                                               |
+| --------------------- | --------------------------------------------------------- |
+| access_token          | The access token                                          |
+| token_type            | The type of the token. This is always `Bearer`            |
+| expires_in            | The lifetime of the access token in seconds               |
+| refresh_token         | The refresh token that can be used to request a new token |
+| refresh_token_expires | The lifetime of the refresh token in seconds              |
+
+```json title="Token response example"
+{
+  "refresh_token_expires_in": "86399",
+  "token_type": "Bearer",
+  // highlight-start
+  "access_token": "De6Ac7C57E2Rre9etTCcrivcmcKK",
+  // highlight-end
+  "refresh_token": "2fYGdRf1h2d0aoSPhvGJBDiysGrYwzX6",
+  "expires_in": "1799"
+}
+```
+
+The `access_token` is used to authenticate the API calls and it is valid for 30 minutes.
+After 30 minutes the token expires and a new token needs to be requested either using the refresh token or by requesting a new token using the JWT grant type.
+
+## Password Grant Type
+
+The password grant type is used to retrieve a token using the username and password of a user.
+It is similar to the JWT grant type, but instead of using a JWT token, the username and password are used to authenticate.
+
+Three parameters are required to retrieve a token:
+| Parameter | Description |
+| --- | --- |
+| grant_type | The grant type. For the password grant type this is `password` |
+| username | Use “License ID” for the API product in Live after subscribing. To try it out in Sandbox, use `sandbox-id` |
+| password | Use “License Secret” for the API product in Live after subscribing. To try it out in Sandbox, use `sandbox-key` |
+
+Authorization is done using the client credentials as described in [Application identification](./application-credentials) guide.
+
+```bash title="Token request example" {4}
+POST /oauth2/v1/token HTTP/1.1
+Host: sandbox.swift.com
+Content-Type: application/x-www-form-urlencoded
+Authorization: Basic MjJRU0JFQVFzQmR3dU5GNnNWalRqQWFZQ1JMT0tHMnZ0ajpramRzZmtkamZkMDk4OQ==
+
+grant_type=password
+&username=sandbox-id
+&password=sandbox-key
+```
+
+Please refer to the [License ID & Secret Creation Guide](https://developer.swift.com/license-id-secret-creation-guide) for information on how to acquire these credentials in Live environment.

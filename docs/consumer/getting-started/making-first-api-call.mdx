@@ -1,0 +1,117 @@
+---
+sidebar_position: 3
+toc_max_heading_level: 4
+---
+
+# Making your first API Call
+
+## Introduction
+
+:::info
+For more information about the OAuth authentication process, see the [OAuth Authentication](/consumer/security/oauth-authentication) guide.
+:::
+
+Swift APIs are secured using OAuth 2.0. This means that you need to authenticate before you can make an API call.
+
+import OAuthJwtSequenceDiagram from "../security/_oauth-jwt-sequence-diagram.mdx";
+
+<OAuthJwtSequenceDiagram />
+
+## Application credentials
+
+For the purpose of this example, we provide the application credentials for the `sandbox` environment
+but **you can use your own application credentials**.
+
+You can create a new application following the [Application credentials](/consumer/security/application-credentials) guide.
+
+import AppCredentials from "@site/src/components/make-api-call/AppCredentials";
+
+<AppCredentials />
+
+## Steps to make an API call
+
+import BoxLayout from "@site/src/components/box/BoxLayout";
+import Box from "@site/src/components/box/Box";
+
+<BoxLayout>
+  <Box to="#step-1-generate-the-json-web-token-jwt">
+    <h2>Step 1</h2>
+    <h4>Generate the JWT</h4>
+    <p>Generate the JWT assertion using the channel certificate.</p>
+  </Box>
+  <Box to="#step-2-retrieve-the-oauth-token">
+    <h2>Step 2</h2>
+    <h4>OAuth token retrieval</h4>
+    <p>
+      Make an HTTP <code>POST</code> request to the
+      <code>/oauth2/v1/token</code> endpoint to retrieve an OAuth token. The JWT
+      assertion, the scope and the grant type are passed as parameters in the request
+      body.
+    </p>
+  </Box>
+  <Box to="#step-3-make-the-api-call">
+    <h2>Step 3</h2>
+    <h4>Make the API call</h4>
+    <p>Use the OAuth token to make the API call.</p>
+  </Box>
+</BoxLayout>
+
+### Step 1: Generate the JSON Web Token (JWT)
+
+The JWT is used to retrieve an OAuth token and it is generated using the channel certificate and the application credentials.
+For the purpose of this example, we will use a self-signed certificate.
+
+#### Generate the self-signed certificate
+
+Click on `Generate certificate` button to generate self-signed certificate. This certificate will be used to generate the JWT in the next step.
+
+This self-signed certificate is only valid in sandbox environment.
+You can read more about certificates in the [SwiftNet PKI](/category/swiftnet-pki) guide.
+For production environment, you will need to provide a real certificate.
+
+import Certificates from "@site/src/components/make-api-call/Certificates";
+
+<Certificates />
+
+#### Generate and sign the JWT
+
+:::info
+For more detailed information about the JWT generation, see the [JWT structure](/consumer/security/oauth-authentication#jwt-structure) guide.
+:::
+
+Click on `Generate and sign JWT` button to generate the JWT.
+The JWT header and payload will be populated automatically and the token will be encoded and signed using the private key of the certificate.
+
+Once the JWT is generated, you will be able to see the
+JWT <span style={{ fontWeight: "bold"}} className="header">header</span>, <span style={{ fontWeight: "bold"}} className="payload">payload</span> and <span style={{ fontWeight: "bold"}} className="signature">signature</span> encoded in base64.
+
+import Jwt from "@site/src/components/make-api-call/JWT";
+
+<Jwt />
+
+### Step 2: Retrieve the OAuth token
+
+:::tip
+In case of having any issue, you can check the [Troubleshooting](/consumer/troubleshooting) guide.
+:::
+
+Once you have the JWT, you can use it to retrieve an OAuth token. To do this, you need to make a POST request to the `/oauth2/v1/token` endpoint.
+
+You can copy and paste the following cURL command in your terminal to make the API call.
+
+import TokenRequest from "@site/src/components/make-api-call/TokenRequest";
+
+<TokenRequest />
+
+### Step 3: Make the API call
+
+Once you have the OAuth token, you can use it to make the API call. We will make an API call to the `POST /swift-preval/v2/accounts/verification` endpoint to verify beneficiary account.
+
+import PrevalRequest from "@site/src/components/make-api-call/PrevalRequest";
+
+<PrevalRequest />
+
+## Sample code
+
+Swift provides sample code in different languages to help you get started with the API development.
+You can find the sample code in Swift [GitHub repository](https://github.com) and more information about the sample code in the [Sample code](./consumer/sample-code/quickstart) guide.

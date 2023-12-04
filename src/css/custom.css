@@ -1,0 +1,80 @@
+/**
+ * Any CSS included here will be global. The classic template
+ * bundles Infima by default. Infima is a CSS framework designed to
+ * work well for content-centric websites.
+ */
+
+/* You can override the default Infima variables here. */
+:root {
+  --ifm-color-primary: #333d3e;
+  --ifm-color-primary-dark: #2e3738;
+  --ifm-color-primary-darker: #2b3435;
+  --ifm-color-primary-darkest: #242b2b;
+  --ifm-color-primary-light: #384344;
+  --ifm-color-primary-lighter: #3b4647;
+  --ifm-color-primary-lightest: #424f51;
+  --ifm-menu-color-background-hover: rgb(172, 249, 233, 0.5);
+  --ifm-menu-color-background-active: rgb(172, 249, 233, 0.5);
+  --ifm-breadcrumb-item-background-active: rgb(172, 249, 233, 0.5);
+  -webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+/* For readability concerns, you should choose a lighter palette in dark mode. */
+[data-theme="dark"] {
+  --ifm-color-primary: #acf9e9;
+  --ifm-color-primary-dark: rgb(133, 246, 223);
+  --ifm-color-primary-darker: #71f5d9;
+  --ifm-color-primary-darkest: rgb(54, 240, 202);
+  --ifm-color-primary-light: #d3fcf3;
+  --ifm-color-primary-lighter: #e7fdf9;
+  --ifm-color-primary-lightest: #ffffff;
+  --ifm-menu-color-background-active: #333d3e;
+  --ifm-breadcrumb-item-background-active: rgba(255, 255, 255, 0.05);
+}
+
+/* Hack to change the active color of the TOC element */
+[data-theme="light"] .table-of-contents__link--active {
+  color: #000;
+}
+
+/* Navbar */
+[data-theme="light"] .navbar__link--active {
+ background-color: rgb(172, 249, 233, 0.5);
+ border-radius: 4px;
+}
+
+/* Sidebar */
+.menu {
+  font-weight: 400;
+}
+
+.menu__link--sublist {
+  font-weight: 600;
+}
+
+/* Prism Jwt language */
+.header {
+  color: #f92672;
+}
+
+.payload {
+  color: #d63aff;
+}
+
+.signature {
+  color: #66d9ef;
+}
+
+/* Underline links in markdown */
+div[class*="markdown"] a {
+  text-decoration: underline;
+}
+
+/* Disable word wrap in code blocks */
+pre[class*="language-jwt"],
+code[class*="language-jwt"] {
+  white-space: normal;
+  overflow: auto;
+  word-break: break-word;
+}

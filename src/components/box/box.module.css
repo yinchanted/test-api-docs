@@ -1,0 +1,36 @@
+.container {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.box {
+  flex: 1;
+  padding: 20px;
+  border: 1px solid #acf9e9;
+  box-sizing: border-box;
+  background-color: rgb(172, 249, 233, 0.5);
+  transition: background-color 0.3s ease;
+  text-decoration: none !important;
+}
+
+.box:hover {
+  cursor: pointer;
+  background-color: rgb(172, 249, 233, 1.0);
+}
+
+[data-theme="dark"] .box {
+  color: white;
+  background-color: rgb(67, 79, 81, 0.5)
+}
+
+[data-theme="dark"] .box:hover {
+  background-color: rgb(67, 79, 81, 1.0)
+}
+
+/** In mobile view, reduce the padding */
+@media screen and (max-width: 996px) {
+  .container {
+    flex-direction: column;
+  }
+}
